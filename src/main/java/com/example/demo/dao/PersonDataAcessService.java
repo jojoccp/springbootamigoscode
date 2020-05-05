@@ -4,12 +4,21 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.flywaydb.core.internal.jdbc.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.example.demo.model.Person;
 
 @Repository("postgres")
-public class PersonDataAcessService implements PersonDao{
+public class PersonDataAcessService implements PersonDao {
+
+	private final JdbcTemplate jdbcTemplate;
+
+	@Autowired
+	public PersonDataAcessService(JdbcTemplate jdbcTemplate) {
+		this.jdbcTemplate = jdbcTemplate;
+	}
 
 	@Override
 	public int insertPerson(UUID id, Person person) {
@@ -18,7 +27,13 @@ public class PersonDataAcessService implements PersonDao{
 
 	@Override
 	public List<Person> selectAllPeople() {
-		return List.of(new Person(UUID.randomUUID(), "FROM POSTGRES DB"));
+		final String sql = "SELECT id, name FROM person";
+		List<Person> people = jdbcTemplate.query(sql, (resultSet, i) -> {
+			UUID id = UUID.fromString(resultSet.getString("id");
+			String name = resultSet.getString("name");
+			return new Person( id,name);
+		});
+			return people;
 	}
 
 	@Override
